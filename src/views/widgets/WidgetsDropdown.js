@@ -323,7 +323,15 @@ const WidgetsDropdown = () => {
         </CCol>
       </CRow>
       <CRow>
-        {alertState.state === 'active' ? <CAlert color="info">{alertState.message}</CAlert> : ''}
+        {walletConnected ? (
+          alertState.state === 'active' ? (
+            <CAlert color="info">{alertState.message}</CAlert>
+          ) : (
+            ''
+          )
+        ) : (
+          ''
+        )}
       </CRow>
     </>
   )
