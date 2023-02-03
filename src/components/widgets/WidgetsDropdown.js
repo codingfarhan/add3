@@ -172,7 +172,7 @@ const WidgetsDropdown = () => {
   const mintTokens = async (userAddress, contract) => {
     setAlertState({
       state: 'active',
-      message: `Minting 100 ${tokenSymbol} tokens to address ${userAddress}... please wait..`,
+      message: `Minting 100 ${tokenSymbol} tokens to address ${userAddress}... please wait...`,
       color: 'info',
     })
     await contract.mint(userAddress, 100).then(() => {
