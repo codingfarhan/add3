@@ -2,23 +2,7 @@ import React, { useState } from 'react'
 import { ethers } from 'ethers'
 import { useWalletContext } from '../../WalletContext'
 
-import {
-  CRow,
-  CCol,
-  CDropdown,
-  CDropdownMenu,
-  CDropdownItem,
-  CDropdownToggle,
-  CWidgetStatsA,
-  CInputGroup,
-  CFormInput,
-  CButton,
-  CAlert,
-} from '@coreui/react'
-import { getStyle } from '@coreui/utils'
-import { CChartBar, CChartLine } from '@coreui/react-chartjs'
-import CIcon from '@coreui/icons-react'
-import { cilArrowBottom, cilArrowTop, cilOptions } from '@coreui/icons'
+import { CRow, CCol, CWidgetStatsA, CInputGroup, CFormInput, CButton, CAlert } from '@coreui/react'
 
 // Smart Contract ABI.
 
@@ -189,11 +173,13 @@ const WidgetsDropdown = () => {
     setAlertState({
       state: 'active',
       message: `Minting 100 ${tokenSymbol} tokens to address ${userAddress}... please wait..`,
+      color: 'info',
     })
     await contract.mint(userAddress, 100).then(() => {
       setAlertState({
         state: 'active',
         message: `Minting complete! 100 ${tokenName} tokens have been minted to address ${userAddress} !`,
+        color: 'success',
       })
     })
   }
@@ -204,7 +190,7 @@ const WidgetsDropdown = () => {
       .request({ method: 'eth_requestAccounts' })
       .then((res) => {
         console.log(res[0])
-        setAccountAddress(res[0])
+        // setAccountAddress(res[0])
         return res[0]
       })
       .then((address) => {
@@ -260,7 +246,7 @@ const WidgetsDropdown = () => {
 
   // using states:
 
-  const [accountAddress, setAccountAddress] = useState('')
+  // const [accountAddress, setAccountAddress] = useState('')
   const [accountBalance, setAccountBalance] = useState('Nil')
   const [tokenName, setTokenName] = useState('Nil')
   const [tokenSymbol, setTokenSymbol] = useState('')
@@ -268,7 +254,7 @@ const WidgetsDropdown = () => {
   const [userAddress, setUserAddress] = useState('')
   const [contractAddress, setContractAddress] = useState('')
 
-  const [alertState, setAlertState] = useState({ state: 'inactive', message: '' })
+  const [alertState, setAlertState] = useState({ state: 'inactive', message: '', color: '' })
 
   // set the account address
   if (walletConnected) {
@@ -325,7 +311,7 @@ const WidgetsDropdown = () => {
       <CRow>
         {walletConnected ? (
           alertState.state === 'active' ? (
-            <CAlert color="info">{alertState.message}</CAlert>
+            <CAlert color={alertState.color}>{alertState.message}</CAlert>
           ) : (
             ''
           )
