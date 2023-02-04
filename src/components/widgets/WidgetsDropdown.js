@@ -22,12 +22,16 @@ const WidgetsDropdown = () => {
       .then(() => {
         setAlertState({
           state: 'active',
-          message: `Minting complete! 100 ${tokenName} tokens have been minted to address ${userAddress} !`,
+          message: `Minting complete! 100 ${tokenName} tokens have been minted to address "${userAddress}" !`,
           color: 'success',
         })
       })
-      .then(() => {
-        getTokenBalance()
+      .catch((err) => {
+        setAlertState({
+          state: 'active',
+          message: `An error occured while minting tokens for account "${userAddress}". Are you sure the Account Address is correct?`,
+          color: 'danger',
+        })
       })
   }
   // function to get the Token related data.
@@ -114,7 +118,6 @@ const WidgetsDropdown = () => {
             className="mb-4"
             color="primary"
             value={walletConnected ? <>Balance: {accountBalance}</> : <>Balance: Nil</>}
-            // title={'Token: ' + tokenName + (tokenSymbol !== '' ? '(' + tokenSymbol + ')' : '')}
             title={walletConnected ? `Token: ${tokenName} (${tokenSymbol})` : 'Token: Nil'}
             style={{ paddingBottom: '15px' }}
           />
@@ -129,7 +132,19 @@ const WidgetsDropdown = () => {
             ></CFormInput>
             <CButton
               onClick={() => {
-                mintTokens(userAddress, contractAddress)
+                if (userAddress !== '' && userAddress.length == 66) {
+                  mintTokens(userAddress, contractAddress)
+                }
+
+                if (userAddress === '') {
+                  return false
+                } else if (userAddress.length < 66) {
+                  setAlertState({
+                    state: 'active',
+                    message: 'Please make sure the Account Address is valid!',
+                    color: 'danger',
+                  })
+                }
               }}
             >
               Mint
