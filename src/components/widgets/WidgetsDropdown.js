@@ -9,6 +9,32 @@ import { CRow, CCol, CWidgetStatsA, CInputGroup, CFormInput, CButton, CAlert } f
 const contractABI = require('../../contract/contractABI.json')
 
 const WidgetsDropdown = () => {
+  console.log(process.env.REACT_APP_API_KEY)
+  // change network to Goerli network..
+
+  const changeNetwork = async () => {
+    const goerliNetwork = {
+      chainId: `0x${Number(5).toString(16)}`,
+      chainName: 'Goerli Test Network',
+      nativeCurrency: {
+        name: 'TestToken',
+        symbol: 'ETK',
+        decimals: 18,
+      },
+      rpcUrls: [`https://eth-goerli.g.alchemy.com/v2/${process.env.REACT_APP_API_KEY}`],
+      blockExplorerUrls: ['https://goerli.etherscan.io/'],
+    }
+
+    await window.ethereum
+      .request({
+        method: 'wallet_addEthereumChain',
+        params: [goerliNetwork],
+      })
+      .catch((err) => {
+        console.log('An error occured while enforcing MetaMask to use the Goerli network..', err)
+      })
+  }
+
   // function to Mint tokens using smart contract.
 
   const mintTokens = async (userAddress, contract) => {
@@ -40,7 +66,7 @@ const WidgetsDropdown = () => {
     await window.ethereum
       .request({ method: 'eth_requestAccounts' })
       .then((res) => {
-        console.log(res[0])
+        // console.log(res[0])
         // setAccountAddress(res[0])
         return res[0]
       })
@@ -53,7 +79,7 @@ const WidgetsDropdown = () => {
     await contract
       .balanceOf(address)
       .then((balance) => {
-        console.log(balance.toString())
+        // console.log(balance.toString())
         setAccountBalance(balance.toString())
       })
       .catch((err) => {
@@ -77,12 +103,12 @@ const WidgetsDropdown = () => {
     //   (network = 'goerly'),
     //   'Mjit0Jq89qciTYJWQZLTvs9MCxyf_Mxd',
     // )
-    console.log(typeof process.env.REACT_APP_WALLET_ADDRESS)
+    // console.log(typeof process.env.REACT_APP_WALLET_ADDRESS)
     const signer = new ethers.Wallet(process.env.REACT_APP_WALLET_ADDRESS, provider)
     const smartContractAddress = process.env.REACT_APP_SMART_CONTRACT_ADDRESS
-    console.log(typeof smartContractAddress)
+    // console.log(typeof smartContractAddress)
     setContractAddress(new ethers.Contract(smartContractAddress, contractABI, signer))
-    console.log(contractAddress)
+    // console.log(contractAddress)
 
     // getting token balance
     await getTokenBalance(address, contractAddress)
@@ -106,7 +132,8 @@ const WidgetsDropdown = () => {
   const [alertState, setAlertState] = useState({ state: 'inactive', message: '', color: '' })
 
   // set the account address
-  if (walletConnected) {
+  if (localStorage?.getItem('walletConnected') === 'true') {
+    changeNetwork()
     getBlockchainData()
   }
 
@@ -132,13 +159,9 @@ const WidgetsDropdown = () => {
             ></CFormInput>
             <CButton
               onClick={() => {
-                if (userAddress !== '' && userAddress.length == 66) {
+                if (ethers.utils.isAddress(userAddress)) {
                   mintTokens(userAddress, contractAddress)
-                }
-
-                if (userAddress === '') {
-                  return false
-                } else if (userAddress.length < 66) {
+                } else {
                   setAlertState({
                     state: 'active',
                     message: 'Please make sure the Account Address is valid!',

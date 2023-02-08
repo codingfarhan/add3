@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useWalletContext } from '../WalletContext'
 import { NavLink } from 'react-router-dom'
 import {
@@ -22,19 +22,42 @@ const AppHeader = () => {
 
   // function to connect DApp to MetaMask wallet.
   const connectWallet = async () => {
-    await window.ethereum
-      .request({ method: 'eth_requestAccounts' })
-      .then((account) => {
-        walletConnected
-          ? console.log('Disconnected from MetaMask!!')
-          : console.log('Connected to MetaMask!!')
-        toggleWalletConnection()
-        setAccountNumber(account[0])
-      })
-      .catch((err) => {
-        console.log('An error occured while connecting to MetaMask..', err)
-      })
+    if (!walletConnected) {
+      await window.ethereum
+        .request({ method: 'eth_requestAccounts' })
+        .then((account) => {
+          toggleWalletConnection()
+          localStorage.setItem('walletConnected', true)
+          setAccountNumber(account[0])
+          console.log('MetaMask connected!')
+        })
+        .catch((err) => {
+          console.log('An error occured while connecting to MetaMask..', err)
+        })
+    } else {
+      toggleWalletConnection()
+      localStorage.setItem('walletConnected', false)
+
+      console.log('MetaMask Disconnected!')
+    }
   }
+
+  // setting wallection state on loading the page:
+
+  useEffect(() => {
+    if (localStorage?.getItem('walletConnected') === 'true') {
+      window.ethereum
+        .request({ method: 'eth_requestAccounts' })
+        .then((account) => {
+          setAccountNumber(account[0])
+          console.log(accountNumber)
+          console.log('MetaMask connected!')
+        })
+        .catch((err) => {
+          console.log('An error occured while connecting to MetaMask..', err)
+        })
+    }
+  }, [])
 
   // returning the component.
   return (
