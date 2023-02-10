@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { ethers } from 'ethers'
 import { useWalletContext } from '../../WalletContext'
+import { useAccountAddressContext } from '../../accountAddressContext'
 
 import { CRow, CCol, CWidgetStatsA, CInputGroup, CFormInput, CButton, CAlert } from '@coreui/react'
 
@@ -9,7 +10,7 @@ import { CRow, CCol, CWidgetStatsA, CInputGroup, CFormInput, CButton, CAlert } f
 const contractABI = require('../../contract/contractABI.json')
 
 const WidgetsDropdown = () => {
-  console.log(process.env.REACT_APP_API_KEY)
+  // console.log(process.env.REACT_APP_API_KEY)
   // change network to Goerli network..
 
   const changeNetwork = async () => {
@@ -17,8 +18,8 @@ const WidgetsDropdown = () => {
       chainId: `0x${Number(5).toString(16)}`,
       chainName: 'Goerli Test Network',
       nativeCurrency: {
-        name: 'TestToken',
-        symbol: 'ETK',
+        name: 'Ethereum',
+        symbol: 'ETH',
         decimals: 18,
       },
       rpcUrls: [`https://eth-goerli.g.alchemy.com/v2/${process.env.REACT_APP_API_KEY}`],
@@ -60,22 +61,10 @@ const WidgetsDropdown = () => {
         })
       })
   }
-  // function to get the Token related data.
-
-  const getBlockchainData = async () => {
-    await window.ethereum
-      .request({ method: 'eth_requestAccounts' })
-      .then((res) => {
-        // console.log(res[0])
-        // setAccountAddress(res[0])
-        return res[0]
-      })
-      .then((address) => {
-        getTokenData(address)
-      })
-  }
+  // functions to get the Token related data.
 
   const getTokenBalance = async (address, contract) => {
+    // console.log(address)
     await contract
       .balanceOf(address)
       .then((balance) => {
@@ -88,22 +77,28 @@ const WidgetsDropdown = () => {
   }
 
   const getTokenNameAndSymbol = async (contract) => {
-    setTokenName(await contract.name())
-    setTokenSymbol(await contract.symbol())
+    const contractName = await contract.name()
+    setTokenName((tokenName) => {
+      if (tokenName !== contractName && typeof contractName !== undefined) {
+        return contractName
+      } else {
+        return tokenName
+      }
+    })
+
+    const contractSymbol = await contract.symbol()
+    setTokenSymbol((tokenSymbol) => {
+      if (tokenSymbol !== contractSymbol && typeof contractSymbol !== undefined) {
+        return contractSymbol
+      } else {
+        return tokenSymbol
+      }
+    })
   }
 
-  const getTokenData = async (address) => {
+  const getBlockchainData = async (address) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
-    // const provider = new ethers.providers.JsonRpcProvider(
-    //   'https://goerli.etherscan.io/address/0x927dfb9e957526e4d40448d6d05a39ea39a2ee6b',
-    //   5,
-    // )
 
-    // const provider = new ethers.providers.AlchemyProvider(
-    //   (network = 'goerly'),
-    //   'Mjit0Jq89qciTYJWQZLTvs9MCxyf_Mxd',
-    // )
-    // console.log(typeof process.env.REACT_APP_WALLET_ADDRESS)
     const signer = new ethers.Wallet(process.env.REACT_APP_WALLET_ADDRESS, provider)
     const smartContractAddress = process.env.REACT_APP_SMART_CONTRACT_ADDRESS
     // console.log(typeof smartContractAddress)
@@ -119,6 +114,7 @@ const WidgetsDropdown = () => {
 
   // using wallet context here.
   const { walletConnected, toggleWalletConnection } = useWalletContext()
+  const { accountAddress, updateAccountAddress } = useAccountAddressContext()
 
   // using states:
 
@@ -132,9 +128,13 @@ const WidgetsDropdown = () => {
   const [alertState, setAlertState] = useState({ state: 'inactive', message: '', color: '' })
 
   // set the account address
-  if (localStorage?.getItem('walletConnected') === 'true') {
+  if (
+    localStorage.getItem('walletConnected') === 'true' &&
+    window.ethereum._state.accounts.length > 0 &&
+    accountAddress !== ''
+  ) {
     changeNetwork()
-    getBlockchainData()
+    setInterval(() => getBlockchainData(accountAddress), 3000)
   }
 
   return (
